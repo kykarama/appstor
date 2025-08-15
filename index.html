@@ -48,6 +48,8 @@
 
 <script>
 (function(){
+  // NOTE: We draw in CSS pixels. Canvas backing store is DPR-scaled,
+  // but S.w/S.h are kept in CSS pixels to avoid coordinate mismatch.
   const COLORS = { bg:'#0A0A0A', grid:'#141414', head:'#FFFFFF', tail:'#9BEA67', food:'#FF5C7A', aura:'#00E0FF', ui:'#EAEAEA', meta:'#7C3AED' };
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
@@ -85,13 +87,18 @@
   function resize(){
     const dpr = Math.max(1, Math.min(3, window.devicePixelRatio||1));
     const rect = canvas.getBoundingClientRect();
+    // Backing store in device pixels
     canvas.width = Math.floor(rect.width * dpr);
     canvas.height = Math.floor(rect.height * dpr);
+    // Draw using CSS pixels
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    S.w = canvas.width; S.h = canvas.height; S.dpr = dpr;
+    S.dpr = dpr;
+    S.w = rect.width;   // <-- CSS pixel size for logic
+    S.h = rect.height;
     reset(false);
   }
   window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 200));
 
   function placeFood(){
     const margin = Math.min(S.w, S.h) * 0.08;
@@ -100,7 +107,6 @@
   }
 
   function reset(keepBest=true){
-    // Centered start position
     S.px = S.w / 2;
     S.py = S.h / 2;
     S.angle = 0;
@@ -179,6 +185,7 @@
   }
 
   function draw(){
+    ctx.clearRect(0,0,S.w,S.h);
     ctx.fillStyle = COLORS.bg; ctx.fillRect(0,0,S.w,S.h);
 
     // grid
@@ -197,10 +204,10 @@
     for (let i=0;i<S.tail.length;i++){ const p=S.tail[i]; if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); }
     ctx.stroke();
 
-    // head aura
+    // head aura & head
     ctx.beginPath(); ctx.arc(S.px,S.py,14,0,Math.PI*2); ctx.strokeStyle=COLORS.aura; ctx.lineWidth=2; ctx.stroke();
-    // head
     ctx.beginPath(); ctx.arc(S.px,S.py,8,0,Math.PI*2); ctx.fillStyle=COLORS.head; ctx.fill();
+
     // food
     ctx.beginPath(); ctx.arc(S.food.x,S.food.y,7,0,Math.PI*2); ctx.fillStyle=COLORS.food; ctx.fill();
 
