@@ -18,7 +18,7 @@
     .bottombar{position:absolute; inset:auto 0 0 0; text-align:center; font-size:10px; padding:10px; opacity:.7}
     .overlay{position:absolute; inset:0; display:grid; place-items:center; background:transparent}
     .card{background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15); padding:16px 18px; border-radius:16px; backdrop-filter: blur(10px); text-align:center}
-    .btn{display:inline-block; padding:8px 14px; border-radius:16px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.1); color:#fff; text-decoration:none; cursor:pointer}
+    .btn{display:inline-block; padding:8px 14px; border-radius:16px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.1); color:#fff; text-decoration:none}
     .cta{margin-top:10px; font-size:12px; opacity:.8}
   </style>
 </head>
@@ -31,7 +31,7 @@
       <div class="card">
         <div style="font-weight:600;margin-bottom:6px">Serpentine</div>
         <div style="opacity:.85;font-size:13px;margin-bottom:10px" id="hint">tap to start · удерживай ритм</div>
-        <a class="btn" id="playBtn">Играть</a>
+        <a href="#" class="btn" id="playBtn">Играть</a>
         <div class="cta">tap/click — смена поворота</div>
       </div>
     </div>
@@ -39,7 +39,7 @@
       <div class="card">
         <div style="font-weight:700;margin-bottom:4px">Проигрыш</div>
         <div style="opacity:.85;font-size:13px;margin-bottom:10px">счёт <span id="finalScore">0</span> · рекорд <span id="finalBest">0</span></div>
-        <a class="btn" id="retryBtn">Ещё раз</a>
+        <a href="#" class="btn" id="retryBtn">Ещё раз</a>
       </div>
     </div>
     <div class="bottombar">избегай стен и хвоста · собирай точки</div>
@@ -100,6 +100,7 @@
   }
 
   function reset(keepBest=true){
+    // Centered start position
     S.px = S.w / 2;
     S.py = S.h / 2;
     S.angle = 0;
@@ -213,7 +214,6 @@
   canvas.addEventListener('mousedown', input);
   canvas.addEventListener('touchstart', input, {passive:false});
   document.addEventListener('keydown', (e)=>{ if(e.code==='Space'||e.code==='Enter') input(e); });
-  // FIX: wire overlay buttons
   playBtn.addEventListener('click', (e)=>{ e.preventDefault(); start(); });
   retryBtn.addEventListener('click', (e)=>{ e.preventDefault(); reset(); start(); });
 
