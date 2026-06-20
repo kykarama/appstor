@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Artillery MVP</title>
+  <style>
+    body { margin: 0; background: #111; }
+    canvas { display: block; margin: 0 auto; background: #222; }
+  </style>
+</head>
+<body>
+<canvas id="game" width="900" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const GRAVITY = 0.2;
+
+let terrain = [];
+let players = [
+  { x: 150, y: 0, hp: 100, color: "lime" },
+  { x: 750, y: 0, hp: 100, color: "red" }
+];
+
+let currentPlayer = 0;
+let projectile = null;
+
+function generateTerrain() {
+  terrain = [];
+  let h = 300;
+  for (let x = 0; x < canvas.width; x++) {
+    h += (Math.random() - 0.5) * 4;
+    terrain[x] = h;
+  }
+}
+
+function placePlayers() {
+  players.forEach(p => {
+    p.y = terrain[Math.floor(p.x)] - 10;
+  });
+}
+
+function drawTerrain() {
+  ctx.fillStyle = "#555";
+  for (let x = 0; x < terrain.length; x++) {
+    ctx.fillRect(x, terrain[x], 1, canvas.height);
+  }
+}
+
+function drawPlayers() {
+  players.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - 5, p.y - 5, 10, 10);
+  });
+}
+
+function drawUI() {
+  ctx.fillStyle = "#fff";
+  ctx.fillText("Player " + (currentPlayer + 1), 20, 20);
+}
+
+function shoot(angle, power) {
+  let p = players[currentPlayer];
+  projectile = {
+    x: p.x,
+    y: p.y,
+    vx: Math.cos(angle) * power,
+    vy: Math.sin(angle) * power
+  };
+}
+
+canvas.addEventListener("click", (e) => {
+  if (projectile) return;
+
+  let dx = e.offsetX - players[currentPlayer].x;
+  let dy = e.offsetY - players[currentPlayer].y;
+
+  let angle = Math.atan2(dy, dx);
+  let power = Math.min(10, Math.hypot(dx, dy) / 10);
+
+  shoot(angle, power);
+});
+
+function updateProjectile() {
+  if (!projectile) return;
+
+  projectile.vy += GRAVITY;
+  projectile.x += projectile.vx;
+  projectile.y += projectile.vy;
+
+  // столкновение с землей
+  if (projectile.y >= terrain[Math.floor(projectile.x)]) {
+    explode(projectile.x, projectile.y);
+    projectile = null;
+    currentPlayer = 1 - currentPlayer;
+  }
+
+  // попадание в игрока
+  players.forEach(p => {
+    let dist = Math.hypot(p.x - projectile.x, p.y - projectile.y);
+    if (dist < 10) {
+      p.hp -= 20;
+      explode(projectile.x, projectile.y);
+      projectile = null;
+      currentPlayer = 1 - currentPlayer;
+    }
+  });
+}
+
+function explode(x, y) {
+  for (let i = -20; i < 20; i++) {
+    let tx = Math.floor(x + i);
+    if (terrain[tx]) {
+      terrain[tx] += Math.abs(i) * 0.5;
+    }
+  }
+}
+
+function drawProjectile() {
+  if (!projectile) return;
+  ctx.fillStyle = "yellow";
+  ctx.beginPath();
+  ctx.arc(projectile.x, projectile.y, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function loop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  updateProjectile();
+  drawTerrain();
+  drawPlayers();
+  drawProjectile();
+  drawUI();
+
+  requestAnimationFrame(loop);
+}
+
+generateTerrain();
+placePlayers();
+loop();
+</script>
+</body>
+</html>
